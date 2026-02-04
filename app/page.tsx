@@ -1,65 +1,258 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useRef } from 'react';
+import { QRCode, Input, Button, Slider, ColorPicker, Select, message, Divider, Space, Card } from 'antd';
+import { CopyOutlined, DownloadOutlined } from '@ant-design/icons';
+import type { Color } from 'antd/es/color-picker';
 
 export default function Home() {
+  const [url, setUrl] = useState('https://ant.design');
+  const [size, setSize] = useState(200);
+  const [color, setColor] = useState('#000000');
+  const [bgColor, setBgColor] = useState('#ffffff');
+  const [errorLevel, setErrorLevel] = useState<'L' | 'M' | 'Q' | 'H'>('M');
+  const [iconUrl, setIconUrl] = useState('');
+  const [iconSize, setIconSize] = useState(40);
+  const qrRef = useRef<HTMLDivElement>(null);
+
+  // Функція для копіювання QR коду
+  const copyQRCode = async () => {
+    try {
+      const canvas = qrRef.current?.querySelector('canvas');
+      if (canvas) {
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            message.success('QR код скопійовано в буфер обміну!');
+          }
+        });
+      }
+    } catch (error) {
+      message.error('Помилка копіювання QR коду');
+    }
+  };
+
+  // Функція для завантаження QR коду
+  const downloadQRCode = () => {
+    const canvas = qrRef.current?.querySelector('canvas');
+    if (canvas) {
+      const url = canvas.toDataURL();
+      const a = document.createElement('a');
+      a.download = 'qrcode.png';
+      a.href = url;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      message.success('QR код завантажено!');
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-5xl font-bold text-center mb-3 text-gray-800">
+          Генератор QR Кодів
+        </h1>
+        <p className="text-center text-gray-600 mb-12">
+          Створюйте персоналізовані QR коди з вашими посиланнями
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card className="shadow-xl rounded-2xl">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-700">Налаштування</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Посилання або текст
+                </label>
+                <Input
+                  size="large"
+                  placeholder="Введіть URL або текст"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="rounded-lg"
+                />
+              </div>
+
+              <Divider className="my-4" />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Розмір: {size}px
+                </label>
+                <Slider
+                  min={100}
+                  max={400}
+                  value={size}
+                  onChange={setSize}
+                  tooltip={{ open: false }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Колір QR коду
+                </label>
+                <ColorPicker
+                  value={color}
+                  onChange={(value: Color) => setColor(value.toHexString())}
+                  showText
+                  size="large"
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Колір фону
+                </label>
+                <ColorPicker
+                  value={bgColor}
+                  onChange={(value: Color) => setBgColor(value.toHexString())}
+                  showText
+                  size="large"
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Рівень корекції помилок
+                </label>
+                <Select
+                  size="large"
+                  value={errorLevel}
+                  onChange={setErrorLevel}
+                  className="w-full"
+                  options={[
+                    { value: 'L', label: 'L - ~7% (Низький)' },
+                    { value: 'M', label: 'M - ~15% (Середній)' },
+                    { value: 'Q', label: 'Q - ~25% (Високий)' },
+                    { value: 'H', label: 'H - ~30% (Дуже високий)' },
+                  ]}
+                />
+              </div>
+
+              <Divider className="my-4">Опціонально</Divider>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  URL іконки (лого в центрі)
+                </label>
+                <Input
+                  size="large"
+                  placeholder="https://example.com/logo.png"
+                  value={iconUrl}
+                  onChange={(e) => setIconUrl(e.target.value)}
+                  className="rounded-lg"
+                />
+              </div>
+
+              {iconUrl && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Розмір іконки: {iconSize}px
+                  </label>
+                  <Slider
+                    min={20}
+                    max={80}
+                    value={iconSize}
+                    onChange={setIconSize}
+                    tooltip={{ open: false }}
+                  />
+                </div>
+              )}
+            </div>
+          </Card>
+
+          <Card className="shadow-xl rounded-2xl">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-700">Попередній перегляд</h2>
+            
+            <div className="flex flex-col items-center justify-center">
+              <div 
+                ref={qrRef} 
+                className="bg-white p-8 rounded-2xl shadow-lg mb-6"
+                style={{ 
+                  backgroundColor: bgColor,
+                }}
+              >
+                {url ? (
+                  <QRCode
+                    value={url}
+                    size={size}
+                    color={color}
+                    bgColor={bgColor}
+                    errorLevel={errorLevel}
+                    icon={iconUrl || undefined}
+                    iconSize={iconUrl ? iconSize : undefined}
+                  />
+                ) : (
+                  <div 
+                    className="flex items-center justify-center text-gray-400"
+                    style={{ width: size, height: size }}
+                  >
+                    Введіть текст
+                  </div>
+                )}
+              </div>
+
+              {url && (
+                <Space size="large" className="w-full justify-center">
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<CopyOutlined />}
+                    onClick={copyQRCode}
+                    className="bg-blue-600 hover:bg-blue-700 rounded-lg px-8"
+                  >
+                    Копіювати
+                  </Button>
+                  <Button
+                    type="default"
+                    size="large"
+                    icon={<DownloadOutlined />}
+                    onClick={downloadQRCode}
+                    className="rounded-lg px-8"
+                  >
+                    Завантажити
+                  </Button>
+                </Space>
+              )}
+
+              <div className="mt-8 p-4 bg-blue-50 rounded-lg w-full">
+                <p className="text-sm text-gray-600 text-center">
+                  💡 <strong>Порада:</strong> Збільшіть рівень корекції помилок, якщо плануєте додавати логотип у центр
+                </p>
+              </div>
+            </div>
+          </Card>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        <Card className="mt-8! shadow-xl rounded-2xl">
+          <h3 className="text-xl font-semibold mb-4 text-gray-700">Що таке рівень корекції помилок?</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <strong className="text-gray-800">L (7%)</strong>
+              <p className="mt-2">Базова корекція. Підходить для чистих поверхонь.</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <strong className="text-gray-800">M (15%)</strong>
+              <p className="mt-2">Рекомендовано для більшості випадків використання.</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <strong className="text-gray-800">Q (25%)</strong>
+              <p className="mt-2">Висока корекція. Підходить для QR кодів з логотипами.</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <strong className="text-gray-800">H (30%)</strong>
+              <p className="mt-2">Максимальна корекція. Для складних умов.</p>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
