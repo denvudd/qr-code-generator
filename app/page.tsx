@@ -15,10 +15,10 @@ export default function Home() {
   const [iconSize, setIconSize] = useState(40);
   const qrRef = useRef<HTMLDivElement>(null);
 
-  // Функція для копіювання QR коду
   const copyQRCode = async () => {
     try {
       const canvas = qrRef.current?.querySelector('canvas');
+      
       if (canvas) {
         canvas.toBlob(async (blob) => {
           if (blob) {
@@ -34,9 +34,9 @@ export default function Home() {
     }
   };
 
-  // Функція для завантаження QR коду
   const downloadQRCode = () => {
     const canvas = qrRef.current?.querySelector('canvas');
+
     if (canvas) {
       const url = canvas.toDataURL();
       const a = document.createElement('a');
