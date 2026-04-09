@@ -1,51 +1,62 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { QRCode, Input, Button, Slider, ColorPicker, Select, message, Divider, Space, Card } from 'antd';
-import { CopyOutlined, DownloadOutlined } from '@ant-design/icons';
-import type { Color } from 'antd/es/color-picker';
+import { useState, useRef } from "react";
+import {
+  QRCode,
+  Input,
+  Button,
+  Slider,
+  ColorPicker,
+  Select,
+  message,
+  Divider,
+  Space,
+  Card,
+} from "antd";
+import { CopyOutlined, DownloadOutlined } from "@ant-design/icons";
+import type { Color } from "antd/es/color-picker";
 
 export default function Home() {
-  const [url, setUrl] = useState('https://ant.design');
+  const [url, setUrl] = useState("https://ant.design");
   const [size, setSize] = useState(200);
-  const [color, setColor] = useState('#000000');
-  const [bgColor, setBgColor] = useState('#ffffff');
-  const [errorLevel, setErrorLevel] = useState<'L' | 'M' | 'Q' | 'H'>('M');
-  const [iconUrl, setIconUrl] = useState('');
+  const [color, setColor] = useState("#000000");
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [errorLevel, setErrorLevel] = useState<"L" | "M" | "Q" | "H">("M");
+  const [iconUrl, setIconUrl] = useState("");
   const [iconSize, setIconSize] = useState(40);
   const qrRef = useRef<HTMLDivElement>(null);
 
   const copyQRCode = async () => {
     try {
-      const canvas = qrRef.current?.querySelector('canvas');
-      
+      const canvas = qrRef.current?.querySelector("canvas");
+
       if (canvas) {
         canvas.toBlob(async (blob) => {
           if (blob) {
             await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
+              new ClipboardItem({ "image/png": blob }),
             ]);
-            message.success('QR код скопійовано в буфер обміну!');
+            message.success("QR код скопійовано в буфер обміну!");
           }
         });
       }
     } catch (error) {
-      message.error('Помилка копіювання QR коду');
+      message.error("Помилка копіювання QR коду");
     }
   };
 
   const downloadQRCode = () => {
-    const canvas = qrRef.current?.querySelector('canvas');
+    const canvas = qrRef.current?.querySelector("canvas");
 
     if (canvas) {
       const url = canvas.toDataURL();
-      const a = document.createElement('a');
-      a.download = 'qrcode.png';
+      const a = document.createElement("a");
+      a.download = "qrcode.png";
       a.href = url;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      message.success('QR код завантажено!');
+      message.success("QR код завантажено!");
     }
   };
 
@@ -61,8 +72,10 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card className="shadow-xl rounded-2xl">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-700">Налаштування</h2>
-            
+            <h2 className="text-2xl font-semibold mb-6 text-gray-700">
+              Налаштування
+            </h2>
+
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -118,24 +131,6 @@ export default function Home() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Рівень корекції помилок
-                </label>
-                <Select
-                  size="large"
-                  value={errorLevel}
-                  onChange={setErrorLevel}
-                  className="w-full"
-                  options={[
-                    { value: 'L', label: 'L - ~7% (Низький)' },
-                    { value: 'M', label: 'M - ~15% (Середній)' },
-                    { value: 'Q', label: 'Q - ~25% (Високий)' },
-                    { value: 'H', label: 'H - ~30% (Дуже високий)' },
-                  ]}
-                />
-              </div>
-
               <Divider className="my-4">Опціонально</Divider>
 
               <div>
@@ -169,13 +164,15 @@ export default function Home() {
           </Card>
 
           <Card className="shadow-xl rounded-2xl">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-700">Попередній перегляд</h2>
-            
+            <h2 className="text-2xl font-semibold mb-6 text-gray-700">
+              Попередній перегляд
+            </h2>
+
             <div className="flex flex-col items-center justify-center">
-              <div 
-                ref={qrRef} 
+              <div
+                ref={qrRef}
                 className="bg-white p-8 rounded-2xl shadow-lg mb-6"
-                style={{ 
+                style={{
                   backgroundColor: bgColor,
                 }}
               >
@@ -190,7 +187,7 @@ export default function Home() {
                     iconSize={iconUrl ? iconSize : undefined}
                   />
                 ) : (
-                  <div 
+                  <div
                     className="flex items-center justify-center text-gray-400"
                     style={{ width: size, height: size }}
                   >
@@ -221,37 +218,9 @@ export default function Home() {
                   </Button>
                 </Space>
               )}
-
-              <div className="mt-8 p-4 bg-blue-50 rounded-lg w-full">
-                <p className="text-sm text-gray-600 text-center">
-                  💡 <strong>Порада:</strong> Збільшіть рівень корекції помилок, якщо плануєте додавати логотип у центр
-                </p>
-              </div>
             </div>
           </Card>
         </div>
-
-        <Card className="mt-8! shadow-xl rounded-2xl">
-          <h3 className="text-xl font-semibold mb-4 text-gray-700">Що таке рівень корекції помилок?</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <strong className="text-gray-800">L (7%)</strong>
-              <p className="mt-2">Базова корекція. Підходить для чистих поверхонь.</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <strong className="text-gray-800">M (15%)</strong>
-              <p className="mt-2">Рекомендовано для більшості випадків використання.</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <strong className="text-gray-800">Q (25%)</strong>
-              <p className="mt-2">Висока корекція. Підходить для QR кодів з логотипами.</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <strong className="text-gray-800">H (30%)</strong>
-              <p className="mt-2">Максимальна корекція. Для складних умов.</p>
-            </div>
-          </div>
-        </Card>
       </div>
     </div>
   );
